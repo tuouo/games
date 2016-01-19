@@ -49,7 +49,7 @@ reach 'limit', It may be helpful.
 '''
 
 from functools import reduce
-import logging; logging.basicConfig(level = logging.INFO, filename = 'no2g.log', filemode = 'w')
+import logging; logging.basicConfig(level = logging.INFO, filename = 'no2g.log', filemode = 'w')#ERROR
 virgin, cross, black = 0, 1, 2        # means not sure, not, is black
 
 def nonogram(numbers):
@@ -66,9 +66,13 @@ def nonogram(numbers):
     table = [None] * HorLen           # Init
     for i in range(HorLen):
         table[i] = [virgin] * VerLen
+    tablePre = [None] * HorLen        # for something can't be solved
+    for i in range(HorLen):
+        tablePre[i] = [virgin] * VerLen
+    same = False
 
     try:
-        while not allOK and count < limit:
+        while not same and not allOK and count < limit:
             for i in range(HorLen):
                 if not HorOK[i]:
                     logging.info("scanLine Horizontal line %s: %s\n%s" % (i, Horizontal[i], table[i]))
@@ -89,6 +93,7 @@ def nonogram(numbers):
                 logging.info("%s %s" % (i, table.index(i)))
             allOK = reduce(lambda a, b: a and b, HorOK + VerOK)
             count += 1
+            #tablePre, same = isSameTable(table, tablePre, HorLen, VerLen)
     except Exception as e:
         printNo2g(table)
         raise e
@@ -98,6 +103,15 @@ def nonogram(numbers):
     printNo2g(table)
     return table
 
+def isSameTable(table, pre, HorLen, VerLen):
+    same = True
+    for i in range(HorLen):
+        for j in range(VerLen):
+            if table[i][j] != pre[i][j]:
+                same = False
+                pre[i][j] = table[i][j]
+    return pre, same
+    
 
 def scanLine(lineLen, tipNums, line):
     global cross, black
@@ -194,6 +208,9 @@ def getMostLeftLine(lineLen, tipNums, line):
             newLine, numNew, nextpos = checkBefore(tipNums, num + 1, line, newLine, lastBlack + 1)
             if newLine[nextpos - 1] == black:
                 nextpos += 1
+            if numNew != tipLen- 1 or nextpos != findNextBlockStart(lineLen, tipNums[numNew], line, nextpos):
+                num = numNew
+                continue
             blockLen = tipNums[numNew]
             for i in range(nextpos, nextpos + blockLen):  
                 newLine[i] = black
@@ -300,6 +317,7 @@ if __name__ == '__main__':
     numbers = []
     reg = re.compile(r'(\d+)')
     for i in numberStr:
-        if reg.match(i):
-            numbers.append(list(map(int, reg.findall(i))))
+        data = reg.findall(i)
+        if data:
+            numbers.append(list(map(int, data)))
     nonogram(numbers)
