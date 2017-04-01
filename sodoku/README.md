@@ -16,3 +16,9 @@ You can see on sudo3.py.
 
 4: when we play sodoku, we not play in the way computer plays. Basically, we find a right number based on the rule
 and put to the right cell. After that guess a number to the cell which has least options.
+You can see on sudo4.py.
+
+5: TODO fill cell which only has one option, then remove other's candidate
+   Use other trick
+
+0: file for optimization
