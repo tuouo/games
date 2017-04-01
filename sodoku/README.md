@@ -13,3 +13,6 @@ You can see on sudo2.py.
 
 3: we may not fill cell by from top to bottom. we can find the cell which has the less option the fill it.
 You can see on sudo3.py.
+
+4: when we play sodoku, we not play in the way computer plays. Basically, we find a right number based on the rule
+and put to the right cell. After that guess a number to the cell which has least options.
