@@ -33,291 +33,288 @@ input data:
 
 virgin, cross, black = 0, 1, 2    # means not sure, not, is black for each cell
 
-Improve: 
+Improve:
     If one Dimensions tipnumbers have constant same length tipnumbers,
-or, tipnumber which length small than the same length tipnumber couple 
-and between them. In the section only start and end with one of the 
+or, tipnumber which length small than the same length tipnumber couple
+and between them. In the section only start and end with one of the
 same length tipnumber couple, if one of the same length tipnumber couple
-is sured, than you can add cross before and after it.
+is sure, than you can add cross before and after it.
 # #     example:
 # tipnumbers: [8, 2, 1, 1, 2]
 # line:    [..... 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0]
-# must be 
+# must be
 # newLine: [..... 1, 0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0, 0, 0, 0, 0]
     It seems code which below can work without this improve. But if 'count'
 reach 'limit', It may be helpful.
 '''
 
 from functools import reduce
-import logging; logging.basicConfig(level = logging.INFO, filename = 'no2g.log', filemode = 'w')#ERROR
-virgin, cross, black = 0, 1, 2        # means not sure, not, is black
+import logging
+
+logging.basicConfig(level=logging.INFO, filename='no2g.log', filemode='w')  # ERROR
+virgin, cross, black = 0, 1, 2  # means not sure, not, is black
+
 
 def nonogram(numbers):
     logging.info("Let's beginnig nonogram")
     global virgin, cross, black
-    HorLen, VerLen  = numbers[0]
-    Horizontal = numbers[1 : 1 + HorLen]
-    Vertical = numbers[1 + HorLen :]    
-    HorOK = [False] * HorLen          # mark if horizontal line mark ok or not
-    VerOK = [False] * VerLen          # mark if vertical line mark ok or not 
-    allOK = reduce(lambda a, b: a and b, HorOK + VerOK)
+    hor_len, ver_len = numbers[0]
+    horizontal = numbers[1: 1 + hor_len]
+    vertical = numbers[1 + hor_len:]
+    hor_ok = [False] * hor_len  # mark if horizontal line mark ok or not
+    ver_ok = [False] * ver_len  # mark if vertical line mark ok or not
+    all_ok = reduce(lambda a, b: a and b, hor_ok + ver_ok)
 
-    count, limit = 0, HorLen + VerLen # incase noend loop
-    table = [None] * HorLen           # Init
-    for i in range(HorLen):
-        table[i] = [virgin] * VerLen
-    tablePre = [None] * HorLen        # for something can't be solved
-    for i in range(HorLen):
-        tablePre[i] = [virgin] * VerLen
+    count, limit = 0, hor_len + ver_len  # in case no end loop
+    table = [None] * hor_len  # Init
+    for i in range(hor_len):
+        table[i] = [virgin] * ver_len
+    table_pre = [None] * hor_len  # for something can't be solved
+    for i in range(hor_len):
+        table_pre[i] = [virgin] * ver_len
     same = False
 
     try:
-        while not same and not allOK and count < limit:
-            for i in range(HorLen):
-                if not HorOK[i]:
-                    logging.info("scanLine Horizontal line %s: %s\n%s" % (i, Horizontal[i], table[i]))
-                    table[i], HorOK[i] = scanLine(VerLen, Horizontal[i], table[i])
+        while not same and not all_ok and count < limit:
+            for i in range(hor_len):
+                if not hor_ok[i]:
+                    logging.info("scan_line horizontal line %s: %s\n%s" % (i, horizontal[i], table[i]))
+                    table[i], hor_ok[i] = scan_line(ver_len, horizontal[i], table[i])
             for i in table:
                 logging.info("%s %s" % (i, table.index(i)))
 
-            for i in range(VerLen):
-                if not VerOK[i]:
-                    line = []          # transfer Vertical to Horizontal for multiplex method scanLine
-                    for n in range(HorLen):
-                        line.append(table[n][i])
-                    logging.info("scanLine Vertical line %s: %s\n%s" % (i, Vertical[i], line))
-                    newLine, VerOK[i] = scanLine(HorLen, Vertical[i], line)
-                    for n in range(HorLen):
-                        table[n][i] = newLine[n]
+            for i in range(ver_len):
+                if not ver_ok[i]:
+                    line_item = []  # transfer vertical to horizontal for multiplex method scan_line
+                    for n in range(hor_len):
+                        line_item.append(table[n][i])
+                    logging.info("scan_line vertical line %s: %s\n%s" % (i, vertical[i], line_item))
+                    new_line, ver_ok[i] = scan_line(hor_len, vertical[i], line_item)
+                    for n in range(hor_len):
+                        table[n][i] = new_line[n]
             for i in table:
                 logging.info("%s %s" % (i, table.index(i)))
-            allOK = reduce(lambda a, b: a and b, HorOK + VerOK)
+            all_ok = reduce(lambda a, b: a and b, hor_ok + ver_ok)
             count += 1
-            #tablePre, same = isSameTable(table, tablePre, HorLen, VerLen)
+            # table_pre, same = is_same_table(table, table_pre, hor_len, ver_len)
     except Exception as e:
-        printNo2g(table)
+        print_no2g(table)
         raise e
-    
+
     logging.info("Total check count is: %s" % count)
     print("Total check count is: %s" % count)
-    printNo2g(table)
+    print_no2g(table)
     return table
 
-def isSameTable(table, pre, HorLen, VerLen):
+
+def is_same_table(table, pre, hor_len, ver_len):
     same = True
-    for i in range(HorLen):
-        for j in range(VerLen):
+    for i in range(hor_len):
+        for j in range(ver_len):
             if table[i][j] != pre[i][j]:
                 same = False
                 pre[i][j] = table[i][j]
     return pre, same
-    
 
-def scanLine(lineLen, tipNums, line):
+
+def scan_line(line_len, tip_nums, line_item):
     global cross, black
-    if len(tipNums) == 1:
-        if tipNums[0] == 0:                          
-            return [cross] * lineLen, True
-        elif tipNums[0] == lineLen:
-            return [black] * lineLen, True
+    if len(tip_nums) == 1:
+        if tip_nums[0] == 0:
+            return [cross] * line_len, True
+        elif tip_nums[0] == line_len:
+            return [black] * line_len, True
 
     logging.info("----MostLeft")
-    offLeft = getMostLeftLine(lineLen, tipNums, line)   # all black to left as possible
+    off_left = get_most_left_line(line_len, tip_nums, line_item)  # all black to left as possible
     logging.info("----MostRight")
-    offRigh = getMostRightLine(lineLen, tipNums, line)  # all black to right as possible  
-    lineOK  = offLeft == offRigh    
-    logging.info("\t%s\n%s\n%s" % (lineOK, offLeft, offRigh))
-    newLine = mixLeftRight(line, offLeft, offRigh)      # get cell suit both left & right
-    logging.info("----mix\n%s" % newLine)
-    if not lineOK: 
-        newLine = checkCross(newLine, tipNums, offLeft, offRigh) 
-        logging.info("----checkCross\n%s\n" % newLine)
-    return newLine, lineOK
+    off_right = get_most_right_line(line_len, tip_nums, line_item)  # all black to right as possible
+    line_ok = off_left == off_right
+    logging.info("\t%s\n%s\n%s" % (line_ok, off_left, off_right))
+    new_line = mix_left_right(line_item, off_left, off_right)  # get cell suit both left & right
+    logging.info("----mix\n%s" % new_line)
+    if not line_ok:
+        new_line = check_cross(new_line, tip_nums, off_left, off_right)
+        logging.info("----check_cross\n%s\n" % new_line)
+    return new_line, line_ok
 
 
-def checkCross(newLine, tipNums, mostLeft, mostRight):
+def check_cross(new_line, tip_nums, most_left, most_right):
     '''
     check cross: if virgin block'len less than black block which may appear, must be cross
-    '''    
+    '''
     global virgin, cross, black
-    off, blockLen = mostLeft[0][1] + 1, 1
-    while off < mostRight[-1][0]:
-        if newLine[off] != virgin:
+    off, block_len = most_left[0][1] + 1, 1
+    while off < most_right[-1][0]:
+        if new_line[off] != virgin:
             off += 1
         else:
-            while newLine[off + blockLen] == virgin:
-                if off + blockLen == mostRight[-1][0]: # == is ok, not need >=
-                    return newLine
-                blockLen += 1
-            if newLine[off - 1] == cross and newLine[off + blockLen] == cross:
-                bigThanOneHere = False
-                for i in range(len(tipNums)):
-                    if off >= mostLeft[i][0]:
-                        if off <= mostRight[i][1] and blockLen >= tipNums[i]:
-                            bigThanOneHere = True
+            while new_line[off + block_len] == virgin:
+                if off + block_len == most_right[-1][0]:  # == is ok, not need >=
+                    return new_line
+                block_len += 1
+            if new_line[off - 1] == cross and new_line[off + block_len] == cross:
+                big_than_one_here = False
+                for i in range(len(tip_nums)):
+                    if off >= most_left[i][0]:
+                        if off <= most_right[i][1] and block_len >= tip_nums[i]:
+                            big_than_one_here = True
                             break
                     else:
                         break
-                if not bigThanOneHere:
-                    for n in range(blockLen):
-                        newLine[off + n] = cross
-            off += (blockLen + 1)
-            blockLen = 1
-    return newLine
+                if not big_than_one_here:
+                    for n in range(block_len):
+                        new_line[off + n] = cross
+            off += (block_len + 1)
+            block_len = 1
+    return new_line
 
 
-def mixLeftRight(line, mostLeft, mostRight):    
+def mix_left_right(line_item, most_left, most_right):
     global virgin, cross, black
-    tipNum, lineLen = len(mostLeft), len(line)
-    for n in range(mostLeft[0][0]):
-        line[n] = cross
-    for i in range(tipNum - 1):
-        for n in range(mostRight[i][0], mostLeft[i][1] + 1):
-            line[n] = black
-        for n in range(mostRight[i][1] + 1, mostLeft[i + 1][0]):
-            line[n] = cross  
-    for n in range(mostRight[-1][0], mostLeft[-1][1] + 1):
-        line[n] = black
-    for n in range(mostRight[-1][1] + 1, lineLen):
-        line[n] = cross
-    return line    
+    tip_num, line_len = len(most_left), len(line_item)
+    for n in range(most_left[0][0]):
+        line_item[n] = cross
+    for i in range(tip_num - 1):
+        for n in range(most_right[i][0], most_left[i][1] + 1):
+            line_item[n] = black
+        for n in range(most_right[i][1] + 1, most_left[i + 1][0]):
+            line_item[n] = cross
+    for n in range(most_right[-1][0], most_left[-1][1] + 1):
+        line_item[n] = black
+    for n in range(most_right[-1][1] + 1, line_len):
+        line_item[n] = cross
+    return line_item
 
 
-def getMostRightLine(lineLen, tipNums, line):
-    offReverse = getMostLeftLine(lineLen, tipNums[::-1], line[::-1])
-    offRigh = []
-    for n in offReverse:
-        offRigh.append((lineLen - 1 - n[1], lineLen - 1 - n[0]))
-    return offRigh[::-1]
+def get_most_right_line(line_len, tip_nums, line_item):
+    off_reverse = get_most_left_line(line_len, tip_nums[::-1], line_item[::-1])
+    off_right = []
+    for n in off_reverse:
+        off_right.append((line_len - 1 - n[1], line_len - 1 - n[0]))
+    return off_right[::-1]
 
-    
-def getMostLeftLine(lineLen, tipNums, line):
+
+def get_most_left_line(line_len, tip_nums, line_item):
     global virgin, cross, black
-    nextpos, num, tipLen, lastBlack = 0, 0, len(tipNums), lineLen - 1
-    offLeft, newLine = [(0, 0)] * len(tipNums), [virgin] * lineLen
-    while line[lastBlack] != black and lastBlack >= 0:
-        lastBlack -= 1
-    while num < tipLen:
-        nextpos = findNextBlockStart(lineLen, tipNums[num], line, nextpos)    
-        newLine, numNew, nextpos = checkBefore(tipNums, num, line, newLine, nextpos)
-        blockLen = tipNums[numNew]
-        for i in range(nextpos, nextpos + blockLen):  
-            newLine[i] = black
+    next_pos, num, tip_len, last_black = 0, 0, len(tip_nums), line_len - 1
+    off_left, new_line = [(0, 0)] * len(tip_nums), [virgin] * line_len
+    while line_item[last_black] != black and last_black >= 0:
+        last_black -= 1
+    while num < tip_len:
+        next_pos = find_next_block_start(line_len, tip_nums[num], line_item, next_pos)
+        new_line, num_new, next_pos = check_before(tip_nums, num, line_item, new_line, next_pos)
+        block_len = tip_nums[num_new]
+        for _ in range(next_pos, next_pos + block_len):
+            new_line[_] = black
 
-        if numNew == tipLen - 1 and lastBlack > nextpos + blockLen:
-            newLine, numNew, nextpos = checkBefore(tipNums, num + 1, line, newLine, lastBlack + 1)
-            if newLine[nextpos - 1] == black:
-                nextpos += 1
-            if numNew != tipLen- 1 or nextpos != findNextBlockStart(lineLen, tipNums[numNew], line, nextpos):
-                num = numNew
+        if num_new == tip_len - 1 and last_black > next_pos + block_len:
+            new_line, num_new, next_pos = check_before(tip_nums, num + 1, line_item, new_line, last_black + 1)
+            if new_line[next_pos - 1] == black:
+                next_pos += 1
+            if num_new != tip_len - 1 or next_pos != find_next_block_start(line_len, tip_nums[num_new], line_item, next_pos):
+                num = num_new
                 continue
-            blockLen = tipNums[numNew]
-            for i in range(nextpos, nextpos + blockLen):  
-                newLine[i] = black
-        offLeft[numNew] = (nextpos, nextpos + blockLen - 1) # add each block's start&end
-        nextpos += (blockLen + 1)
-        num = numNew + 1
-    return offLeft
+            block_len = tip_nums[num_new]
+            for _ in range(next_pos, next_pos + block_len):
+                new_line[_] = black
+        off_left[num_new] = (next_pos, next_pos + block_len - 1)  # add each block's start&end
+        next_pos += (block_len + 1)
+        num = num_new + 1
+    return off_left
 
 
-def checkBefore(tipNums, num, line, newLine, nextpos):
+def check_before(tip_nums, num, line_item, new_line, next_pos):
     '''
     check pre suit block need move right or not
     '''
     global virgin, cross, black
-    if num == 0:                          # if pre still have black, means wrong table
-        return newLine, num, nextpos
-    checkpos = nextpos - 1
-    while line[checkpos] != black:        # find pre black in line
-        if checkpos == 0:
-            return newLine, num, nextpos
-        checkpos -= 1
-    if newLine[checkpos] == black:        # means every block in line covered, so OK  
-        return newLine, num, nextpos
-    preBlockEnd = checkpos - 1    
-    while newLine[preBlockEnd] != black : # find pre block in newLine, must be there
-        preBlockEnd -= 1
-   
-    checkNum = num - 1
-    preBlockLen = tipNums[checkNum]
-    skippos = checkpos - preBlockLen + 1
-    for i in range(preBlockEnd - preBlockLen + 1, preBlockEnd + 1):                            
-        newLine[i] = virgin               # remove (pre block)
-    for pos in range(checkpos - preBlockLen, checkpos):
-        if line[pos] != black:            
-            skippos = pos + 1
-            return checkBefore(tipNums, checkNum, line, newLine, skippos)
-        elif line[pos + preBlockLen + 1] == cross: # and will not suit pre cell cross
-            return checkBefore(tipNums, checkNum, line, newLine, checkpos + 1)
-    else:                                 # need pre more long block
-        return checkBefore(tipNums, checkNum, line, newLine, checkpos + 1)
+    if num == 0:  # if pre still have black, means wrong table
+        return new_line, num, next_pos
+    check_pos = next_pos - 1
+    while line_item[check_pos] != black:  # find pre black in line_item
+        if check_pos == 0:
+            return new_line, num, next_pos
+        check_pos -= 1
+    if new_line[check_pos] == black:  # means every block in line_item covered, so OK
+        return new_line, num, next_pos
+    pre_block_end = check_pos - 1
+    while new_line[pre_block_end] != black:  # find pre block in newLine, must be there
+        pre_block_end -= 1
+
+    check_num = num - 1
+    pre_block_len = tip_nums[check_num]
+    skip_pos = check_pos - pre_block_len + 1
+    for _ in range(pre_block_end - pre_block_len + 1, pre_block_end + 1):
+        new_line[_] = virgin  # remove (pre block)
+    for pos in range(check_pos - pre_block_len, check_pos):
+        if line_item[pos] != black:
+            skip_pos = pos + 1
+            return check_before(tip_nums, check_num, line_item, new_line, skip_pos)
+        elif line_item[pos + pre_block_len + 1] == cross:  # and will not suit pre cell cross
+            return check_before(tip_nums, check_num, line_item, new_line, check_pos + 1)
+    else:  # need pre more long block
+        return check_before(tip_nums, check_num, line_item, new_line, check_pos + 1)
 
 
-def findNextBlockStart(lineLen, blockLen, line, start):
+def find_next_block_start(line_len, block_len, line_item, start):
     global virgin, cross, black
     pos, find = start, False
     while not find:
-        while(line[pos] == cross):      # suit block not start with cross
-            pos += 1        
-        newpos = pos
-        for i in range(1, blockLen):
-            if line[pos + i] == cross:  # suit block len short than black
-                newpos += (i + 1)       # check current cell's next
+        while line_item[pos] == cross:  # suit block not start with cross
+            pos += 1
+        new_pos = pos
+        for step in range(1, block_len):
+            if line_item[pos + step] == cross:  # suit block len short than black
+                new_pos += (step + 1)  # check current cell's next
                 break
 
-        if pos == newpos:
+        if pos == new_pos:
             try:
                 if pos == 0:
-                    if blockLen == lineLen or line[pos + blockLen] != black:
+                    if block_len == line_len or line_item[pos + block_len] != black:
                         return pos
-                    pos += 1  
-                while line[pos + blockLen] == black or line[pos - 1] == black:                    
-                    pos += 1                      # black block's next shouldn't be black  
-                    while line[pos + blockLen] == black :
+                    pos += 1
+                while line_item[pos + block_len] == black or line_item[pos - 1] == black:
+                    pos += 1  # black block's next shouldn't be black
+                    while line_item[pos + block_len] == black:
                         pos += 1
-                    if line[pos - 1] == black:    # black block's pre shouldn't be black 
-                        if line[pos + blockLen] == cross:
-                            pos += (blockLen + 1) # suit block len not suit black
+                    if line_item[pos - 1] == black:  # black block's pre shouldn't be black
+                        if line_item[pos + block_len] == cross:
+                            pos += (block_len + 1)  # suit block len not suit black
                             break
                         else:
-                            pos += 1              # continue check next is black
+                            pos += 1  # continue check next is black
                 find = True
-            except Exception as e:                # black block can reach end
-                if (pos + blockLen) == lineLen and line[pos - 1] != black:
+            except Exception as e:  # black block can reach end
+                if (pos + block_len) == line_len and line_item[pos - 1] != black:
                     find = True
                 else:
                     raise e
         else:
-            pos = newpos
+            pos = new_pos
     return pos
 
 
-def printNo2g(table):
+def print_no2g(table):
+    show = {0: "?", 1: " ", 2: "*"}
     for line in table:
-        for cell in line:
-            if cell == 2:
-                print("*", end = '')
-            elif cell == 1:
-                print(" ", end = '')
-            else:
-                print("?", end = '')
-        print('', table.index(line))
+        print("".join([show.get(cell, "?") for cell in line]), '', table.index(line))
     print()
-
-
 
 
 if __name__ == '__main__':
 
     import re
-    with open("test.rtf", 'r') as r:
+
+    with open("test.txt", 'r') as r:
         data = r.read()
-    
+
     numberStr = data.split('\n')
-    numbers = []
+    result = []
     reg = re.compile(r'(\d+)')
-    for i in numberStr:
-        data = reg.findall(i)
+    for line in numberStr:
+        data = reg.findall(line)
         if data:
-            numbers.append(list(map(int, data)))
-    nonogram(numbers)
+            result.append(list(map(int, data)))
+    nonogram(result)
