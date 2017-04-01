@@ -10,3 +10,6 @@ You can see on sudo1.py.
 
 2: we may not fill cell with some wrong number, such as number in the same row, col or box.
 You can see on sudo2.py.
+
+3: we may not fill cell by from top to bottom. we can find the cell which has the less option the fill it.
+You can see on sudo3.py.
