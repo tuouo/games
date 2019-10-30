@@ -200,16 +200,9 @@ class No2g:
             pre_block_end -= 1
         new_line[pre_block_end - pre_block_len + 1:pre_block_end + 1] = [cls.VIRGIN] * pre_block_len
 
-        # check_pos means black pos to handle in line now
-        for pos in range(check_pos - pre_block_len, check_pos):
-            if line[pos] != cls.BLACK:
-                # assume pos + 1 is start of check_num, check before
-                return cls.check_before(tip_nums, check_num, line, new_line, pos + 1)
-            elif line[pos + pre_block_len + 1] == cls.CROSS:
-                # index of check_pos belong pre of current check, current put here
-                return cls.check_before(tip_nums, check_num, line, new_line, check_pos + 1)
-        else:
-            return cls.check_before(tip_nums, check_num, line, new_line, check_pos + 1)
+        # check_pos means black pos to handle in line now, make sure block include it.
+        next_pos = cls.find_next_block_start(line, len(line), tip_nums[check_num], check_pos - pre_block_len + 1)
+        return cls.check_before(tip_nums, check_num, line, new_line, next_pos)
 
     @classmethod
     def get_most_right_line(cls, line, line_len, tip_nums):
