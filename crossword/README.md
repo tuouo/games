@@ -4,19 +4,31 @@ A  Crossword grid is provided to you, along with a set of words (or names of pla
 Cells marked with a - are to be filled with the word list.
 
 
-Input 	   		Output
+Input
+++++++++++  
++------+++  
++++-++++++  
++++-++++++  
++++-----++  
++++-++-+++  
+++++++-+++  
+++++++-+++  
+++++++-+++  
+++++++++++  
+POLAND;LHASA;SPAIN;INDIA  	
 
-++++++++++ 		++++++++++  
-+------+++ 		+POLAND+++  
-+++-++++++ 		+++H++++++  
-+++-++++++ 		+++A++++++  
-+++-----++ 		+++SPAIN++  
-+++-++-+++ 		+++A++N+++  
-++++++-+++ 		++++++D+++  
-++++++-+++ 		++++++I+++  
-++++++-+++ 		++++++A+++  
-++++++++++ 		++++++++++  
-POLAND;LHASA;SPAIN;INDIA  
+
+Output  
+++++++++++  
++POLAND+++  
++++H++++++  
++++A++++++  
++++SPAIN++  
++++A++N+++  
+++++++D+++  
+++++++I+++  
+++++++A+++  
+++++++++++  
 
 [a challenge about of Crossword Puzzle](https://www.hackerrank.com/challenges/crossword-puzzle/problem)  
 
