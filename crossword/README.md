@@ -4,7 +4,7 @@ A  Crossword grid is provided to you, along with a set of words (or names of pla
 Cells marked with a - are to be filled with the word list.
 
 
-Input
+Input  
 ++++++++++  
 +------+++  
 +++-++++++  
