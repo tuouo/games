@@ -32,4 +32,4 @@ Output
 
 [a challenge about of Crossword Puzzle](https://www.hackerrank.com/challenges/crossword-puzzle/problem)  
 
-[crossword solution here](./crossword.py)  
+[crossword solution here](./crossword_with_words.py)  
