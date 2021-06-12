@@ -47,7 +47,6 @@ is sure, than you can add CROSS before and after it.
     It seems code which below can work without this improve. But if 'count'
 reach 'limit', It may be helpful.
 """
-from copy import deepcopy
 import logging
 
 logging.basicConfig(level=logging.INFO, filename='no2g.log', filemode='w')  # level can be (ERROR)
@@ -58,35 +57,33 @@ def nonogram(numbers):
     logging.info("Let's begin...")
     hor_len, ver_len = numbers[0]
     horizontal, vertical = numbers[1: 1 + hor_len], numbers[1 + hor_len:]
-    # mark if horizontal, vertical line mark ok or not
-    hor_ok, ver_ok = [False] * hor_len, [False] * ver_len
-    all_ok = all(hor_ok + ver_ok)
-
     table = [[VIRGIN] * ver_len for _ in range(hor_len)]  # Init
-    count, limit, same, table_pre = 0, hor_len + ver_len, False, deepcopy(table)
+    count, change = 0, True
+    hor_change, ver_change = [True] * hor_len, [True] * ver_len
 
     try:
-        while not same and not all_ok and count < limit:
+        while change:
+            ver_change = [False] * ver_len
             for i, hor_num in enumerate(horizontal):
-                if not hor_ok[i]:
+                if hor_change[i]:
                     logging.info(f"scan_line horizontal line {i}: {hor_num}\n{table[i]}")
-                    table[i], hor_ok[i] = scan_line(ver_len, hor_num, table[i])
+                    table[i], ver_change = scan_line(ver_len, hor_num, table[i], ver_change)
             for i, line_now in enumerate(table):
                 logging.info(f"{line_now}, {i}")
 
+            hor_change = [False] * hor_len
             for i, ver_nums in enumerate(vertical):
-                if not ver_ok[i]:
+                if ver_change[i]:
                     # transfer vertical to horizontal for multiplex method scan_line
                     line_cur = [table[n][i] for n in range(hor_len)]
                     logging.info(f"scan_line vertical line {i}: {ver_nums}\n{line_cur}")
-                    new_line, ver_ok[i] = scan_line(hor_len, ver_nums, line_cur)
+                    new_line, hor_change = scan_line(hor_len, ver_nums, line_cur, hor_change)
                     for n in range(hor_len):
                         table[n][i] = new_line[n]
             for i, line_now in enumerate(table):
                 logging.info(f"{line_now}, {i}")
-            all_ok = all(hor_ok + ver_ok)
+            change = any(hor_change + ver_change)
             count += 1
-            table_pre, same = is_same_table(table, table_pre, hor_len, ver_len)
     except Exception as e:
         print_no2g(table)
         raise e  # the solution for now is wrong or the question is wrong
@@ -98,19 +95,7 @@ def nonogram(numbers):
     return table
 
 
-def is_same_table(table, pre, hor_len, ver_len):
-    same = True
-    for i in range(hor_len):
-        for j in range(ver_len):
-            if table[i][j] != pre[i][j]:
-                same = False
-                break
-    if not same:
-        pre = deepcopy(table)
-    return pre, same
-
-
-def scan_line(line_len, tip_nums, line_cur):
+def scan_line(line_len, tip_nums, line_cur, change_mark):
     if len(tip_nums) == 1:
         if tip_nums[0] == 0:
             return [CROSS] * line_len, True
@@ -120,14 +105,17 @@ def scan_line(line_len, tip_nums, line_cur):
     positions_left = get_most_left_line(line_len, tip_nums, line_cur)  # all BLACK to left as possible
     logging.info("----MostRight")
     positions_right = get_most_right_line(line_len, tip_nums, line_cur)  # all BLACK to right as possible
-    line_ok = positions_left == positions_right
-    logging.info(f"\t{line_ok}\n{positions_left}\n{positions_right}")
+    logging.info(f"\t{positions_left == positions_right}\n{positions_left}\n{positions_right}")
+    line_old = line_cur[::]
     new_line = mix_left_right(line_cur, positions_left, positions_right)  # get cell suit both left & right
     logging.info(f"----mix\n{new_line}")
-    if not line_ok:
+    if positions_left != positions_right:
         new_line = check_cross(new_line, tip_nums, positions_left, positions_right)
         logging.info("----check_cross\n{new_line}\n")
-    return new_line, line_ok
+    for i in range(line_len):
+        if line_old[i] != new_line[i]:
+            change_mark[i] = True
+    return new_line, change_mark
 
 
 def check_cross(new_line, tip_nums, most_left, most_right):
